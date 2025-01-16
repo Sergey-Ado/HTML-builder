@@ -17,8 +17,10 @@ async function createBundle() {
     .filter((filename) => path.parse(filename).ext === '.css');
 
   for (let file of files) {
-    const data = await fs.readFile(path.join(stylesDir, file));
-    await fs.appendFile(bundle, data);
+    const data = await fs.readFile(path.join(stylesDir, file), {
+      encoding: 'utf-8',
+    });
+    await fs.appendFile(bundle, data + '\n');
   }
 }
 
