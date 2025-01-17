@@ -1,37 +1,53 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 
-async function copyDir() {
-  const oldDir = path.join(__dirname, 'files');
-  const newDir = path.join(__dirname, 'files-copy');
+async function copyDir(oldDir, newDir) {
+  await fs.mkdir(newDir, { recursive: true });
 
-  try {
-    await fs.access(newDir);
-  } catch {
-    await fs.mkdir(newDir);
+  const oldObjects = await fs.readdir(oldDir, { withFileTypes: true });
+  for (const object of oldObjects) {
+    const oldName = path.join(oldDir, object.name);
+    const newName = path.join(newDir, object.name);
+
+    if (object.isFile()) {
+      await fs.copyFile(oldName, newName);
+    } else {
+      await copyDir(oldName, newName);
+    }
   }
 
-  const oldFiles = await fs.readdir(oldDir);
-  oldFiles.forEach(async (fileName) => {
-    const oldFile = path.join(oldDir, fileName);
-    const newFile = path.join(newDir, fileName);
+  const newObjects = await fs.readdir(newDir, { withFileTypes: true });
+  for (const object of newObjects) {
+    const oldName = path.join(oldDir, object.name);
+    const newName = path.join(newDir, object.name);
     try {
-      await fs.access(newFile);
+      await fs.access(oldName);
     } catch {
-      await fs.copyFile(oldFile, newFile);
+      if (object.isFile()) {
+        await fs.rm(newName);
+      } else {
+        await rmDiv(newName);
+      }
     }
-  });
-
-  const newFiles = await fs.readdir(newDir);
-  newFiles.forEach(async (fileName) => {
-    const oldFile = path.join(oldDir, fileName);
-    const newFile = path.join(newDir, fileName);
-    try {
-      await fs.access(oldFile);
-    } catch {
-      await fs.rm(newFile);
-    }
-  });
+  }
 }
 
-copyDir();
+async function rmDiv(dir) {
+  const objects = await fs.readdir(dir, { withFileTypes: true });
+
+  for (const object of objects) {
+    const objectName = path.join(dir, object.name);
+    if (object.isFile()) {
+      await fs.rm(objectName);
+    } else {
+      await rmDiv(objectName);
+    }
+  }
+
+  await fs.rmdir(dir);
+}
+
+const oldDir = path.join(__dirname, 'files');
+const newDir = path.join(__dirname, 'files-copy');
+
+copyDir(oldDir, newDir);
