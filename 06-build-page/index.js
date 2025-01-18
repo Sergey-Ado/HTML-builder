@@ -7,31 +7,13 @@ async function buildPage() {
   await rmDir(distDir);
   await fs.mkdir(distDir);
 
-  copyAssets(distDir);
+  const oldAssets = path.join(__dirname, 'assets');
+  const newAssets = path.join(distDir, 'assets');
+  await copyDir(oldAssets, newAssets);
 
   await createStyleFile(distDir);
 
   await createHtmlFile(distDir);
-}
-
-function copyAssets(distDir) {
-  const oldAssets = path.join(__dirname, 'assets');
-  const newAssets = path.join(distDir, 'assets');
-  copyDir(oldAssets, newAssets);
-}
-
-async function createStyleFile(distDir) {
-  const styleDir = path.join(__dirname, 'styles');
-  const newStyleFile = path.join(distDir, 'style.css');
-  const styleFiles = (await fs.readdir(styleDir)).filter(
-    (file) => path.parse(file).ext === '.css',
-  );
-
-  for (const styleFile of styleFiles) {
-    const oldStyleFile = path.join(styleDir, styleFile);
-    const data = await fs.readFile(oldStyleFile, { encoding: 'utf-8' });
-    await fs.appendFile(newStyleFile, data + '\n');
-  }
 }
 
 async function createHtmlFile(distDir) {
@@ -53,19 +35,32 @@ async function createHtmlFile(distDir) {
 }
 
 async function copyDir(oldDir, newDir) {
-  await fs.access(newDir).catch(() => fs.mkdir(newDir));
+  await fs.mkdir(newDir, { recursive: true });
 
-  const objects = await fs.readdir(oldDir, { withFileTypes: true });
-  for (const object of objects) {
+  const oldObjects = await fs.readdir(oldDir, { withFileTypes: true });
+  for (const object of oldObjects) {
     const oldName = path.join(oldDir, object.name);
     const newName = path.join(newDir, object.name);
 
     if (object.isFile()) {
-      await fs.access(newName).catch(() => {
-        fs.copyFile(oldName, newName);
-      });
+      await fs.copyFile(oldName, newName);
     } else {
       await copyDir(oldName, newName);
+    }
+  }
+
+  const newObjects = await fs.readdir(newDir, { withFileTypes: true });
+  for (const object of newObjects) {
+    const oldName = path.join(oldDir, object.name);
+    const newName = path.join(newDir, object.name);
+    try {
+      await fs.access(oldName);
+    } catch {
+      if (object.isFile()) {
+        await fs.rm(newName);
+      } else {
+        await rmDir(newName);
+      }
     }
   }
 }
@@ -89,6 +84,29 @@ async function rmDir(dir) {
   }
 
   await fs.rmdir(dir);
+}
+
+async function createStyleFile() {
+  const bundle = path.join(__dirname, 'project-dist', 'style.css');
+
+  await fs.access(bundle).then(
+    () => fs.rm(bundle),
+    () => {},
+  );
+
+  const stylesDir = path.join(__dirname, 'styles');
+  const objects = await fs.readdir(stylesDir, { withFileTypes: true });
+  const files = objects
+    .filter((object) => object.isFile())
+    .map((file) => file.name)
+    .filter((filename) => path.parse(filename).ext === '.css');
+
+  for (let file of files) {
+    const data = await fs.readFile(path.join(stylesDir, file), {
+      encoding: 'utf-8',
+    });
+    await fs.appendFile(bundle, data + '\n');
+  }
 }
 
 buildPage();
