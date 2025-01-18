@@ -1,7 +1,7 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
 
-async function createBundle() {
+async function createStyleFile() {
   const bundle = path.join(__dirname, 'project-dist', 'bundle.css');
 
   await fs.access(bundle).then(
@@ -24,4 +24,4 @@ async function createBundle() {
   }
 }
 
-createBundle();
+createStyleFile();
