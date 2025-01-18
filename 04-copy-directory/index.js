@@ -26,13 +26,13 @@ async function copyDir(oldDir, newDir) {
       if (object.isFile()) {
         await fs.rm(newName);
       } else {
-        await rmDiv(newName);
+        await rmDi(newName);
       }
     }
   }
 }
 
-async function rmDiv(dir) {
+async function rmDi(dir) {
   const objects = await fs.readdir(dir, { withFileTypes: true });
 
   for (const object of objects) {
@@ -40,7 +40,7 @@ async function rmDiv(dir) {
     if (object.isFile()) {
       await fs.rm(objectName);
     } else {
-      await rmDiv(objectName);
+      await rmDi(objectName);
     }
   }
 
