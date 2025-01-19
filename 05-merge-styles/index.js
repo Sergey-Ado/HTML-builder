@@ -1,5 +1,6 @@
 const path = require('node:path');
 const fs = require('node:fs/promises');
+const os = require('node:os');
 
 async function createStyleFile() {
   const bundle = path.join(__dirname, 'project-dist', 'bundle.css');
@@ -20,7 +21,7 @@ async function createStyleFile() {
     const data = await fs.readFile(path.join(stylesDir, file), {
       encoding: 'utf-8',
     });
-    await fs.appendFile(bundle, data + '\n');
+    await fs.appendFile(bundle, data + os.EOL);
   }
 }
 
