@@ -1,11 +1,17 @@
-const path = require('node:path');
-const fs = require('node:fs/promises');
-const os = require('node:os');
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import url from 'node:url';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 async function buildPage() {
   const distDir = path.join(__dirname, 'project-dist');
 
-  await rmDir(distDir);
+  await fs.access(distDir).then(
+    () => removeDir(distDir),
+    () => {},
+  );
   await fs.mkdir(distDir);
 
   const oldAssets = path.join(__dirname, 'assets');
@@ -60,19 +66,13 @@ async function copyDir(oldDir, newDir) {
       if (object.isFile()) {
         await fs.rm(newName);
       } else {
-        await rmDir(newName);
+        await removeDir(newName);
       }
     }
   }
 }
 
-async function rmDir(dir) {
-  try {
-    await fs.access(dir);
-  } catch {
-    return;
-  }
-
+async function removeDir(dir) {
   const objects = await fs.readdir(dir, { withFileTypes: true });
 
   for (const object of objects) {
@@ -80,7 +80,7 @@ async function rmDir(dir) {
     if (object.isFile()) {
       await fs.rm(objectName);
     } else {
-      await rmDir(objectName);
+      await removeDir(objectName);
     }
   }
 

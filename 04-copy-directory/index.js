@@ -1,5 +1,8 @@
-const path = require('node:path');
-const fs = require('node:fs/promises');
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import url from 'node:url';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 async function copyDir(oldDir, newDir) {
   await fs.mkdir(newDir, { recursive: true });
@@ -26,13 +29,13 @@ async function copyDir(oldDir, newDir) {
       if (object.isFile()) {
         await fs.rm(newName);
       } else {
-        await rmDi(newName);
+        await removeDir(newName);
       }
     }
   }
 }
 
-async function rmDi(dir) {
+async function removeDir(dir) {
   const objects = await fs.readdir(dir, { withFileTypes: true });
 
   for (const object of objects) {
@@ -40,7 +43,7 @@ async function rmDi(dir) {
     if (object.isFile()) {
       await fs.rm(objectName);
     } else {
-      await rmDi(objectName);
+      await removeDir(objectName);
     }
   }
 

@@ -1,6 +1,9 @@
-const path = require('node:path');
-const fs = require('node:fs/promises');
-const os = require('node:os');
+import path from 'node:path';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import url from 'node:url';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 async function createStyleFile() {
   const bundle = path.join(__dirname, 'project-dist', 'bundle.css');

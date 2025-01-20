@@ -1,16 +1,26 @@
-const path = require('node:path');
-const fs = require('node:fs/promises');
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import url from 'node:url';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 
 const filePath = path.join(__dirname, 'secret-folder');
 
-fs.readdir(filePath, { withFileTypes: true })
-  .then((objects) => objects.filter((object) => object.isFile()))
-  .then((files) => Promise.all(files.map((file) => showFileInfo(file))));
-
 async function showFileInfo(file) {
   const parseFileName = path.parse(file.name);
-  const sizeFile = (await fs.stat(path.join(filePath, file.name))).size / 1000;
+  const sizeFile = (await fs.stat(path.join(filePath, file.name))).size;
   console.log(
-    `${parseFileName.name} - ${parseFileName.ext.slice(1)} - ${sizeFile}kb`,
+    `${parseFileName.name} - ${parseFileName.ext.slice(1)} - ${(
+      sizeFile / 1024
+    ).toFixed(3)} bytes`,
   );
 }
+
+async function filesInFolder() {
+  const files = await fs
+    .readdir(filePath, { withFileTypes: true })
+    .then((objects) => objects.filter((object) => object.isFile()));
+  await Promise.all(files.map((file) => showFileInfo(file)));
+}
+
+filesInFolder();

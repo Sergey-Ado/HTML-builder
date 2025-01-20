@@ -1,8 +1,11 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const readline = require('node:readline');
-const process = require('node:process');
+import fs from 'node:fs';
+import path from 'node:path';
+import url from 'node:url';
+import readline from 'node:readline';
+import process from 'node:process';
+import os from 'node:os';
 
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
 const stream = fs.createWriteStream(path.join(__dirname, 'text.txt'));
 
 const rl = readline.createInterface({
@@ -16,7 +19,7 @@ rl.prompt();
 
 rl.on('line', (line) => {
   if (line == 'exit') rl.close();
-  stream.write(line + '\n');
+  stream.write(line + os.EOL);
   rl.prompt();
 });
 
