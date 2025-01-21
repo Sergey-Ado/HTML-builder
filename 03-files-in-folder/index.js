@@ -12,7 +12,7 @@ async function showFileInfo(file) {
   console.log(
     `${parseFileName.name} - ${parseFileName.ext.slice(1)} - ${(
       sizeFile / 1024
-    ).toFixed(3)} bytes`,
+    ).toFixed(3)}kb`,
   );
 }
 
